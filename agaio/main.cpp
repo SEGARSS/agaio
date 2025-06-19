@@ -1,4 +1,4 @@
-#include <SFML/Audio.hpp>
+п»ї#include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <random>
 
@@ -8,13 +8,13 @@ using namespace std;
 using namespace sf;
 
 /*
-Размер мира будет 1000х1000
+Р Р°Р·РјРµСЂ РјРёСЂР° Р±СѓРґРµС‚ 1000С…1000
 */
 
 int puls = 500;
 
 //--------------------------------------------------------------------------------
-CircleShape getShsr(float x, float y)//функция генерирует кружок, и устанавливает все необходимые параметры
+CircleShape getShsr(float x, float y)//С„СѓРЅРєС†РёСЏ РіРµРЅРµСЂРёСЂСѓРµС‚ РєСЂСѓР¶РѕРє, Рё СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РІСЃРµ РЅРµРѕР±С…РѕРґРёРјС‹Рµ РїР°СЂР°РјРµС‚СЂС‹
 {
     CircleShape shsr;
 
@@ -22,16 +22,16 @@ CircleShape getShsr(float x, float y)//функция генерирует кружок, и устанавливае
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(0, 255);
 
-    shsr.setRadius(5);                  // Радиус
-    shsr.setOutlineColor(Color::Cyan); // Цвет линии обводки фигуры
-    shsr.setOutlineThickness(1);      // Толщина линии обводки фигуры
-    shsr.setFillColor( { static_cast<uint8_t>(distrib(gen)), static_cast<uint8_t>(distrib(gen)), static_cast<uint8_t>(distrib(gen)) }); // Цвет заливки фигуры
+    shsr.setRadius(5);                  // Р Р°РґРёСѓСЃ
+    shsr.setOutlineColor(Color::Cyan); // Р¦РІРµС‚ Р»РёРЅРёРё РѕР±РІРѕРґРєРё С„РёРіСѓСЂС‹
+    shsr.setOutlineThickness(1);      // РўРѕР»С‰РёРЅР° Р»РёРЅРёРё РѕР±РІРѕРґРєРё С„РёРіСѓСЂС‹
+    shsr.setFillColor( { static_cast<uint8_t>(distrib(gen)), static_cast<uint8_t>(distrib(gen)), static_cast<uint8_t>(distrib(gen)) }); // Р¦РІРµС‚ Р·Р°Р»РёРІРєРё С„РёРіСѓСЂС‹
     shsr.setPosition({ x, y}); 
 
     return shsr;
 }
 //---------------------------------------------------------------------------------------
-enum class Direction//перечисление, хранит варианты направления движения
+enum class Direction//РїРµСЂРµС‡РёСЃР»РµРЅРёРµ, С…СЂР°РЅРёС‚ РІР°СЂРёР°РЅС‚С‹ РЅР°РїСЂР°РІР»РµРЅРёСЏ РґРІРёР¶РµРЅРёСЏ
 {
     stop,
 
@@ -58,10 +58,10 @@ int main()
     }
 
     CircleShape glShsr;
-    glShsr.setRadius(20);                  // Радиус
-    glShsr.setOutlineColor(Color::Green); // Цвет линии обводки фигуры
-    glShsr.setOutlineThickness(3);       // Толщина линии обводки фигуры
-    glShsr.setFillColor(Color::Red);    // Цвет заливки фигуры
+    glShsr.setRadius(20);                  // Р Р°РґРёСѓСЃ
+    glShsr.setOutlineColor(Color::Green); // Р¦РІРµС‚ Р»РёРЅРёРё РѕР±РІРѕРґРєРё С„РёРіСѓСЂС‹
+    glShsr.setOutlineThickness(3);       // РўРѕР»С‰РёРЅР° Р»РёРЅРёРё РѕР±РІРѕРґРєРё С„РёРіСѓСЂС‹
+    glShsr.setFillColor(Color::Red);    // Р¦РІРµС‚ Р·Р°Р»РёРІРєРё С„РёРіСѓСЂС‹
     glShsr.setPosition({ 400 - 20, 300 - 20 });
 
     Direction direction = Direction::stop;
