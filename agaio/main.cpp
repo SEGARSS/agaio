@@ -55,6 +55,7 @@ int main()
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(1, 1000);
+    uniform_int_distribution<> distrib2(1, 100);
 
     vector<CircleShape> shsr;
 
@@ -157,7 +158,23 @@ int main()
             {
                 cout << "Collision detected!" << endl;
             }
+
+            /*if (glShsr.getPosition() == shsr[i].getPosition())
+            {
+                shsr.push_back(getShsr(distrib(gen), distrib(gen)));
+            }*/
         }
+
+        //Пытаюсь переместить шарик....
+        for (int i = 0; i < shsr.size(); i++)
+        {
+            if (glShsr.getPosition() == shsr[i].getPosition())
+            {
+                //shsr[i].setPosition({ distrib2(gen), distrib2(gen) });//Сужение просит, надо ли?
+                shsr.push_back(getShsr(distrib(gen), distrib(gen)));// Ничо не двигает
+            }
+        }
+        
 
         // Clear screen
         window.clear();
