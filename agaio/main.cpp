@@ -27,6 +27,7 @@ CircleShape getShsr(float x, float y)//функция генерирует кр�
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(0, 255);
+    
 
     shsr.setRadius(5);                  // Радиус
     shsr.setOutlineColor(Color::Cyan); // Цвет линии обводки фигуры
@@ -55,7 +56,7 @@ int main()
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(1, 1000);
-    uniform_int_distribution<> distrib2(1, 100);
+    uniform_real_distribution<float> distrib2(1.f, 1000.f);
 
     vector<CircleShape> shsr;
 
@@ -152,29 +153,16 @@ int main()
             //такой вектор можем получить просто отняв позицию шарика из вектора от позиции нашего нарика
             Vector2f rasoyanie = glShsr.getPosition() - shsr[i].getPosition();
             //считаем сумму радиусов нашего шарика и шарика из вектора
-            int sumRad = glShsr.getRadius() + shsr[i].getRadius();
+            int sumRad = glShsr.getRadius() + shsr[i].getRadius();            
             //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
             if (rasoyanie.length() <= sumRad) 
-            {
+            {                   
+                shsr[i].setPosition({ distrib2(gen), distrib2(gen) });                
                 cout << "Collision detected!" << endl;
+                glShsr.setRadius(20 + (sumRad - 20));
             }
-
-            /*if (glShsr.getPosition() == shsr[i].getPosition())
-            {
-                shsr.push_back(getShsr(distrib(gen), distrib(gen)));
-            }*/
-        }
-
-        //Пытаюсь переместить шарик....
-        for (int i = 0; i < shsr.size(); i++)
-        {
-            if (glShsr.getPosition() == shsr[i].getPosition())
-            {
-                //shsr[i].setPosition({ distrib2(gen), distrib2(gen) });//Сужение просит, надо ли?
-                shsr.push_back(getShsr(distrib(gen), distrib(gen)));// Ничо не двигает
-            }
-        }
-        
+            
+        }        
 
         // Clear screen
         window.clear();
