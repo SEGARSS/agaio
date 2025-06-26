@@ -156,10 +156,10 @@ int main()
             int sumRad = glShsr.getRadius() + shsr[i].getRadius();            
             //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
             if (rasoyanie.length() <= sumRad) 
-            {                   
-                shsr[i].setPosition({ distrib2(gen), distrib2(gen) });                
+            {   
                 cout << "Collision detected!" << endl;
-                glShsr.setRadius(20 + (sumRad - 20));
+                shsr[i].setPosition({ distrib2(gen), distrib2(gen) }); // Переходит на случайную позицию                
+                glShsr.setRadius(20 + (sumRad - 24)); //Увеличиваем радиус шарика
             }
             
         }        
