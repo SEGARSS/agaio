@@ -100,24 +100,38 @@ int main()
                 window.close();
 
             if (event->is<Event::KeyPressed>())
-            {
-                if (Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-                {
-                    directionVector.y = -1.0f;
-                }
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-                {
-                    directionVector.x = -1.0f;
-                }
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-                {
-                    directionVector.x = 1.0f;
-                }
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-                {
-                    directionVector.y = 1.0f;
-                }
+            {                
             }
+        }
+
+        if (Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+        {
+            directionVector.y = -1.0f;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+        {
+            directionVector.x = -1.0f;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+        {
+            directionVector.x = 1.0f;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+        {
+            directionVector.y = 1.0f;
+        }
+
+
+        //Повторить ....
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+        {
+            Vector2i mousePosInt = sf::Mouse::getPosition(window);
+            Vector2f mousePosFloat(static_cast<float>(mousePosInt.x), static_cast<float>(mousePosInt.y));
+            Vector2f glShsrPos = glShsr.getPosition();
+
+            Vector2f newDirection = glShsrPos - mousePosFloat;
+
+            directionVector = newDirection;
         }
 
         // тут у нас появляется понятие нормализации вектора
@@ -155,11 +169,14 @@ int main()
             //считаем сумму радиусов нашего шарика и шарика из вектора
             int sumRad = glShsr.getRadius() + shsr[i].getRadius();            
             //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
-            if (rasoyanie.length() <= sumRad) 
-            {   
+            if (rasoyanie.length() <= sumRad)
+            {
                 cout << "Collision detected!" << endl;
                 shsr[i].setPosition({ distrib2(gen), distrib2(gen) }); // Переходит на случайную позицию                
-                glShsr.setRadius(20 + (sumRad - 24)); //Увеличиваем радиус шарика
+
+                float newRadius = glShsr.getRadius() + 5; // Увеличиваем радиус шарика
+                glShsr.setRadius(newRadius); //Увеличиваем радиус шарика
+                glShsr.setOrigin({ newRadius, newRadius }); // Устанавливаем центр фигуры в центр круга, чтобы при перемещении он двигался от центраq
             }
             
         }        
