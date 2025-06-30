@@ -98,7 +98,7 @@ int main()
     gameWinText.setPosition(sf::Vector2f(50.0f - 10, 300.0f - 60));
 
 
-    // Start the game loop
+    // Начать игровой цикл
     while (window.isOpen())
     {
         // переменная в которой считаем время за которое выводится кадр
@@ -109,18 +109,20 @@ int main()
         cout << "fps: " << 1.f / deltaTime << "\n"; // просто для наглядности сколько сейчас у нас fps
         frameClock.restart(); // важно сбрасывать счетчик каждый кадр, чтобы считать именно время кадра
 
-        // Process events
+        // События процесса
         while (const std::optional event = window.pollEvent())
         {
-            // Close window: exit
+            // Закрыть окно: выход
             if (event->is<sf::Event::Closed>())
                 window.close();
 
+            //Нажатие клавишь
             if (event->is<Event::KeyPressed>())
             {                
             }
         }
 
+        //Нажатие клавишь
         if (Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || Keyboard::isKeyPressed(sf::Keyboard::Key::S))
         {
             directionVector.y = -1.0f;
@@ -186,7 +188,7 @@ int main()
             //считаем сумму радиусов нашего шарика и шарика из вектора
             int sumRad = glShsr.getRadius() + shsr[i].getRadius();            
             //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
-            if (rasoyanie.length() <= sumRad && gameWin == false)
+            if (rasoyanie.length() <= sumRad) // Сначала вписывал сюда && gameWin == false
             {
                 cout << "Collision detected!" << endl;
                 shsr[i].setPosition({ distrib2(gen), distrib2(gen) }); // Переходит на случайную позицию                
@@ -195,6 +197,7 @@ int main()
                 glShsr.setRadius(newRadius); //Увеличиваем радиус шарика
                 glShsr.setOrigin({ newRadius, newRadius }); // Устанавливаем центр фигуры в центр круга, чтобы при перемещении он двигался от центраq
 
+                //Прибавляем очки и делаем условие победы
                 ochki++;
                 if (ochki == 120)
                 {
@@ -203,7 +206,7 @@ int main()
             }            
         }        
 
-        // Clear screen
+        // Очистка окна.
         window.clear();
 
         //Рисуем вывод очков на доске
@@ -222,7 +225,7 @@ int main()
             window.draw(gameWinText);
         }
 
-        // Update the window
+        // Обновить окно
         window.display();
     }
 }
