@@ -13,6 +13,9 @@ using namespace sf;
 */
 
 int puls = 20;
+int ochki = 119;
+
+bool gameWin = false;
 
 /*
 Надо будет избавится от бага чёрных дыр =) или сделать фон белыйм, но и в таком случаи будут тогда
@@ -79,7 +82,21 @@ int main()
 
     window.setFramerateLimit(60); //ограничим fps чтобы не было рывков в движении шариков 
     window.setVerticalSyncEnabled(true); //оптимизация тоже для увеличения плавности
-    // над плавностью еще поработаем дальше
+    
+    //Надпись с очками игрока
+    const Font font("ARIAL.TTF");
+
+    Text text(font, L"Очки 0"); //L - чтоб были русские буквы вместо крякозябры.
+    text.setCharacterSize(30); //Размер текста
+    text.setStyle(Text::Bold);//Стиль текста
+    text.setFillColor(Color::Blue);//Цвет текста
+
+    Text gameWinText(font, L"Подзравляю, Вы выиграли Игру!"); //L - чтоб были русские буквы вместо крякозябры.
+    gameWinText.setCharacterSize(40); //Размер текста
+    gameWinText.setStyle(Text::Bold);//Стиль текста
+    gameWinText.setFillColor(Color::Blue);//Цвет текста
+    gameWinText.setPosition(sf::Vector2f(50.0f - 10, 300.0f - 60));
+
 
     // Start the game loop
     while (window.isOpen())
@@ -169,7 +186,7 @@ int main()
             //считаем сумму радиусов нашего шарика и шарика из вектора
             int sumRad = glShsr.getRadius() + shsr[i].getRadius();            
             //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
-            if (rasoyanie.length() <= sumRad)
+            if (rasoyanie.length() <= sumRad && gameWin == false)
             {
                 cout << "Collision detected!" << endl;
                 shsr[i].setPosition({ distrib2(gen), distrib2(gen) }); // Переходит на случайную позицию                
@@ -177,6 +194,11 @@ int main()
                 float newRadius = glShsr.getRadius() + 5; // Увеличиваем радиус шарика
                 glShsr.setRadius(newRadius); //Увеличиваем радиус шарика
                 glShsr.setOrigin({ newRadius, newRadius }); // Устанавливаем центр фигуры в центр круга, чтобы при перемещении он двигался от центраq
+                ochki++;
+                if (ochki == 120)
+                {
+                    gameWin = true;
+                }
             }
             
         }        
@@ -184,12 +206,21 @@ int main()
         // Clear screen
         window.clear();
 
+        //Рисуем вывод очков на доске
+        text.setString(L"очки " + std::to_string(ochki));//Конвертируем int в string.(to_string)
+        window.draw(text);
+
         for (int i = 0; i < shsr.size(); i++)
         {
             window.draw(shsr[i]);
         }
 
         window.draw(glShsr);
+
+        if (gameWin)
+        {
+            window.draw(gameWinText);
+        }
 
         // Update the window
         window.display();
