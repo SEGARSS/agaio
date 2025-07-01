@@ -12,7 +12,7 @@ using namespace sf;
 Размер мира будет 1000х1000
 */
 
-int puls = 20;
+int puls = 50;
 int ochki = 0;
 
 bool gameWin = false;
