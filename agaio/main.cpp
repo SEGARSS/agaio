@@ -27,7 +27,10 @@ int puls = 50;
 int enemyCount = 5;
 int ochki = 0;
 
+class Enemy;
+
 vector<CircleShape> shsr;
+vector<Enemy> enemies;
 
 bool gameWin = false;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -48,6 +51,88 @@ CircleShape getShsr(float x, float y)//функция генерирует кр�
 
     return shsr;
 }
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+class Enemy
+{
+public:
+    Enemy()
+        : speed_(100.f), directionVector_(0.0f, 0.0f)
+    {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> distrib(0, 400);
+
+        enemies_.setRadius(10);                  // Радиус
+        enemies_.setOutlineColor(Color::Green); // Цвет линии обводки фигуры
+        enemies_.setOutlineThickness(3);       // Толщина линии обводки фигуры
+        enemies_.setFillColor(Color::Red);    // Цвет заливки фигуры
+        enemies_.setPosition({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
+    }
+
+    void draw(RenderWindow& window)
+    {
+        window.draw(enemies_);
+    }
+
+    void moveCamera(Vector2f& directionVector)
+    {
+        enemies_.move(directionVector);        
+    }
+
+    void move(float deltaTime)
+    {
+        
+        if (directionVector_.length() <= 100)
+        {
+            if (directionVector_ != Vector2f(0.0f, 0.0f))
+            {
+                float frameSpeed = speed_ * deltaTime;
+                directionVector_ = directionVector_.normalized() * frameSpeed;
+                enemies_.move(directionVector_);
+                directionVector_ = Vector2f(0.0f, 0.0f);
+            }
+        }
+        else
+        {
+            float frameSpeed = speed_ * deltaTime;
+            Vector2f pos = directionVector_.normalized() * frameSpeed;
+            //directionVector_ = directionVector_.normalized() * frameSpeed;
+            enemies_.move(pos);
+            //directionVector_ = Vector2f(0.0f, 0.0f);
+        }        
+    }
+
+    void setDirection(Vector2f directionVector)
+    {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> distrib(-400, 400);
+
+        if (directionVector.length() <= 100)
+        {
+            directionVector_ = directionVector;
+        }
+        else if (directionVector_.length() == 0)
+        {
+            directionVector_ = Vector2f({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
+        }        
+    }
+
+    float getRadius()
+    {
+        return enemies_.getRadius();
+    }
+
+    Vector2f getPosition()
+    {
+        return enemies_.getPosition();
+    }
+
+private:
+    CircleShape enemies_;
+    Vector2f directionVector_;
+    float speed_; // скорость движения пикселей в секунду
+};
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Player
 {
@@ -97,7 +182,14 @@ public:
             {
                 shsr[i].move(directionVector_);
             }
+
+            for (int i = 0; i < enemies.size(); i++)
+            {
+                enemies[i].moveCamera(directionVector_);
+            }
             directionVector_ = Vector2f(0.0f, 0.0f);// не забываем сбросить вектор направления, иначе бует двигаться даже после отпускания кнопки движения
+
+
         }
     }
 
@@ -124,44 +216,6 @@ private:
     float speed_; // скорость движения пикселей в секунду
 };
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
-class Enemy
-{
-public:
-    Enemy()
-        : speed_(100.f)
-    {
-        enemies_.setRadius(10);                  // Радиус
-        enemies_.setOutlineColor(Color::Green); // Цвет линии обводки фигуры
-        enemies_.setOutlineThickness(3);       // Толщина линии обводки фигуры
-        enemies_.setFillColor(Color::Red);    // Цвет заливки фигуры
-        enemies_.setPosition({ 200 - 10, 100 - 10 });
-    }
-
-    void draw(RenderWindow& window)
-    {
-        window.draw(enemies_);
-    }
-
-    void move(float deltaTime)
-    {
-        float frameSpeed = speed_ * deltaTime;
-    }
-
-    //float getRadius()
-    //{
-    //    return enemies_.getRadius();
-    //}
-
-    //Vector2f getPosition()
-    //{
-    //    return enemies_.getPosition();
-    //}
-
-private:
-    CircleShape enemies_;
-    float speed_; // скорость движения пикселей в секунду
-};
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------
 int main()
 {
     // Create the main window
@@ -172,9 +226,8 @@ int main()
     uniform_int_distribution<> distrib(1, 1000);
     uniform_real_distribution<float> distrib2(1.f, 1000.f);
 
-    Player player;
+    Player player;    
 
-    vector<Enemy> enemies;
     for (int i = 0; i < enemyCount; i++)
     {
         enemies.push_back(Enemy());
@@ -242,7 +295,14 @@ int main()
         player.move(deltaTime);
         for (int i = 0; i < enemyCount; i++)
         {
-            enemies[i].move(deltaTime); // Если реализуем ботов, то тут будет их движение
+            Vector2f posP = player.getPosition();
+            Vector2f posE = enemies[i].getPosition();
+
+            Vector2f posO = posP - posE;
+
+            enemies[i].setDirection(posO);
+            enemies[i].move(deltaTime); 
+
         }
 
         //цикл определения столкновения с шариками
