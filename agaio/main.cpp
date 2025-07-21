@@ -52,8 +52,6 @@ CircleShape getShsr(float x, float y)//функция генерирует кр�
 class Player
 {
 public:
-
-
     Player()
         : directionVector_(0.0f, 0.0f), speed_(400.f)
     {
