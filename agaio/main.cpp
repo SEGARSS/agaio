@@ -80,8 +80,7 @@ public:
     }
 
     void move(float deltaTime)
-    {
-        
+    {        
         if (directionVector_.length() <= 100)
         {
             if (directionVector_ != Vector2f(0.0f, 0.0f))
@@ -97,7 +96,8 @@ public:
             float frameSpeed = speed_ * deltaTime;
             Vector2f pos = directionVector_.normalized() * frameSpeed;
             enemies_.move(pos);
-        }        
+        }    
+        directionVector_ = Vector2f(0.0f, 0.0f);
     }
 
     void setDirection(Vector2f directionVector)
@@ -115,11 +115,25 @@ public:
             for (int i = 0; i < shsr.size(); i++)
             {
                 Vector2f posmin = shsr[i].getPosition() - enemies_.getPosition();
-                directionVector_ = posmin;
+
+                if(directionVector_ == Vector2f(0, 0)) 
+                {                    
+                    directionVector_ = posmin;
+                }
+                else
+                {
+                    //Vector2f posEn = enemies_.getPosition();
+                    if (posmin.length() < directionVector_.length())
+                    {
+                        directionVector_ = posmin;
+                    }
+                    //Вот тут уже твоя проверка на длину posmin 
+                }
+
                 //auto p = min_element(shsr.begin(), shsr.end());
                 //directionVector_ = Vector2f({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
-            }            
-        }        
+            }
+        }
     }
 
     float getRadius()
