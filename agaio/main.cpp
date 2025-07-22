@@ -96,9 +96,7 @@ public:
         {
             float frameSpeed = speed_ * deltaTime;
             Vector2f pos = directionVector_.normalized() * frameSpeed;
-            //directionVector_ = directionVector_.normalized() * frameSpeed;
             enemies_.move(pos);
-            //directionVector_ = Vector2f(0.0f, 0.0f);
         }        
     }
 
@@ -114,7 +112,11 @@ public:
         }
         else if (directionVector_.length() == 0)
         {
-            directionVector_ = Vector2f({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
+            for (int i = 0; i < shsr.size(); i++)
+            {
+                Vector2f posmin = shsr[i].getPosition() - enemies_.getPosition();
+                directionVector_ = posmin;
+            }            
         }        
     }
 
@@ -293,6 +295,7 @@ int main()
         }
 
         player.move(deltaTime);
+
         for (int i = 0; i < enemyCount; i++)
         {
             Vector2f posP = player.getPosition();
