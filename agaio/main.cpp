@@ -106,6 +106,7 @@ public:
         mt19937 gen(rd());
         uniform_int_distribution<> distrib(-400, 400);
 
+        //Пройтись ещё раз 
         if (directionVector.length() <= 100)
         {
             directionVector_ = directionVector;
