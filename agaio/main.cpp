@@ -116,6 +116,7 @@ public:
             {
                 Vector2f posmin = shsr[i].getPosition() - enemies_.getPosition();
                 directionVector_ = posmin;
+                //directionVector_ = Vector2f({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
             }            
         }        
     }
