@@ -41,13 +41,13 @@ CircleShape getShsr(float x, float y)//функция генерирует кр�
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(0, 255);
-    
+
 
     shsr.setRadius(5);                  // Радиус
     shsr.setOutlineColor(Color::Cyan); // Цвет линии обводки фигуры
     shsr.setOutlineThickness(1);      // Толщина линии обводки фигуры
-    shsr.setFillColor( { static_cast<uint8_t>(distrib(gen)), static_cast<uint8_t>(distrib(gen)), static_cast<uint8_t>(distrib(gen)) }); // Цвет заливки фигуры
-    shsr.setPosition({ x, y}); 
+    shsr.setFillColor({ static_cast<uint8_t>(distrib(gen)), static_cast<uint8_t>(distrib(gen)), static_cast<uint8_t>(distrib(gen)) }); // Цвет заливки фигуры
+    shsr.setPosition({ x, y });
 
     return shsr;
 }
@@ -76,27 +76,14 @@ public:
 
     void moveCamera(Vector2f& directionVector)
     {
-        enemies_.move(directionVector);        
+        enemies_.move(directionVector);
     }
 
     void move(float deltaTime)
-    {        
-        if (directionVector_.length() <= 100)
-        {
-            if (directionVector_ != Vector2f(0.0f, 0.0f))
-            {
-                float frameSpeed = speed_ * deltaTime;
-                directionVector_ = directionVector_.normalized() * frameSpeed;
-                enemies_.move(directionVector_);
-                directionVector_ = Vector2f(0.0f, 0.0f);
-            }
-        }
-        else
-        {
-            float frameSpeed = speed_ * deltaTime;
-            Vector2f pos = directionVector_.normalized() * frameSpeed;
-            enemies_.move(pos);
-        }    
+    {
+        float frameSpeed = speed_ * deltaTime;
+        Vector2f pos = directionVector_.normalized() * frameSpeed;
+        enemies_.move(pos);
         directionVector_ = Vector2f(0.0f, 0.0f);
     }
 
@@ -107,34 +94,33 @@ public:
         uniform_int_distribution<> distrib(-400, 400);
 
         //Пройтись ещё раз 
-        if (directionVector.length() <= 100)
-        {
-            directionVector_ = directionVector;
-        }
-        else if (directionVector_.length() == 0)
-        {
-            for (int i = 0; i < shsr.size(); i++)
-            {
-                Vector2f posmin = shsr[i].getPosition() - enemies_.getPosition();
+		if (directionVector.length() <= 200)
+		{
+			directionVector_ = directionVector;
+		}
+		else
+		{
+			Vector2f closestSphere = shsr[0].getPosition() - enemies_.getPosition();
 
-                if(directionVector_ == Vector2f(0, 0)) 
-                {                    
-                    directionVector_ = posmin;
-                }
-                else
-                {
-                    //Vector2f posEn = enemies_.getPosition();
-                    if (posmin.length() < directionVector_.length())
-                    {
-                        directionVector_ = posmin;
-                    }
-                    //Вот тут уже твоя проверка на длину posmin 
-                }
+			for (int i = 1; i < shsr.size(); i++)
+			{
+				Vector2f posmin = shsr[i].getPosition() - enemies_.getPosition();
 
-                //auto p = min_element(shsr.begin(), shsr.end());
-                //directionVector_ = Vector2f({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
-            }
-        }
+				//Vector2f posEn = enemies.getPosition();
+				if (posmin.length() < closestSphere.length())
+				{
+					closestSphere = posmin;
+				}				
+			}
+			directionVector_ = closestSphere;
+		}
+    }
+
+    void eat()
+    {
+        float newRadius = enemies_.getRadius() + 2; // Увеличиваем радиус шарика
+        enemies_.setRadius(newRadius); //Увеличиваем радиус шарика
+        enemies_.setOrigin({ newRadius, newRadius });
     }
 
     float getRadius()
@@ -239,13 +225,13 @@ int main()
 {
     // Create the main window
     sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "SFML window");
-     
+
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(1, 1000);
     uniform_real_distribution<float> distrib2(1.f, 1000.f);
 
-    Player player;    
+    Player player;
 
     for (int i = 0; i < enemyCount; i++)
     {
@@ -255,13 +241,13 @@ int main()
     for (int i = 0; i < puls; i++)
     {
         shsr.push_back(getShsr(distrib(gen), distrib(gen)));
-    }    
+    }
 
     Clock frameClock; //счетчик, чтобы считать время, за которое выводится кадр(frame), 1 сек / на это время = fps (кадры в сек)
 
     window.setFramerateLimit(60); //ограничим fps чтобы не было рывков в движении шариков 
     window.setVerticalSyncEnabled(true); //оптимизация тоже для увеличения плавности
-    
+
     //Надпись с очками игрока
     const Font font("ARIAL.TTF");
 
@@ -299,7 +285,7 @@ int main()
             {
             }
         }
-        
+
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
         {
             Vector2i mousePosInt = sf::Mouse::getPosition(window);
@@ -320,9 +306,13 @@ int main()
 
             Vector2f posO = posP - posE;
 
-            enemies[i].setDirection(posO);
-            enemies[i].move(deltaTime); 
+            if (player.getRadius() > enemies[i].getRadius())
+            {
+                posO = -posO;
+            }
 
+            enemies[i].setDirection(posO);
+            enemies[i].move(deltaTime);
         }
 
         //цикл определения столкновения с шариками
@@ -347,8 +337,23 @@ int main()
                 {
                     gameWin = true;
                 }
-            }            
-        }        
+                continue;
+            }
+
+            //Проверка столкновения с ботом
+            for (int j = 0; j < enemies.size(); j++)
+            {
+                Vector2f conflict = enemies[j].getPosition() - shsr[i].getPosition();
+                int summRadius = enemies[j].getRadius() + shsr[i].getRadius();
+
+                if (conflict.length() <= summRadius)
+                {
+                    shsr[i].setPosition({ distrib2(gen), distrib2(gen) });
+                    enemies[j].eat();
+                }
+            }
+
+        }
 
         // Очистка окна.
         window.clear();
