@@ -324,7 +324,6 @@ int main()
                     enemies[j].Bass::eat();
                 }
             }
-
         }
 
         // Очистка окна.
@@ -337,19 +336,19 @@ int main()
         for (int i = 0; i < shsr.size(); i++)
         {
             window.draw(shsr[i]);
-        }
+        }        
 
-        player.Bass::draw(window);
+        if (gameWin)
+        {
+            window.draw(gameWinText);
+        }        
 
         for (int i = 0; i < enemyCount; i++)
         {
             enemies[i].Bass::draw(window);
         }
 
-        if (gameWin)
-        {
-            window.draw(gameWinText);
-        }
+        player.Bass::draw(window);
 
         // Обновить окно
         window.display();
