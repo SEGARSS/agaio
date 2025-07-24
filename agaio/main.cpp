@@ -207,7 +207,7 @@ int main()
 
     for (int i = 0; i < enemyCount; i++)
     {
-        enemies.push_back(Enemy());
+        enemies.push_back(Enemy()); // Не понимаю немного...
     }
 
     for (int i = 0; i < puls; i++)
@@ -262,7 +262,7 @@ int main()
         {
             Vector2i mousePosInt = sf::Mouse::getPosition(window);
             Vector2f mousePosFloat(static_cast<float>(mousePosInt.x), static_cast<float>(mousePosInt.y));
-            Vector2f playerPos = player.getPosition();
+            Vector2f playerPos = player.Bass::getPosition();
 
             Vector2f newDirection = playerPos - mousePosFloat;
 
