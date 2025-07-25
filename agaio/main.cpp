@@ -32,7 +32,10 @@ class Enemy;
 vector<CircleShape> shsr;
 vector<Enemy> enemies;
 
+
 bool gameWin = false;
+
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 CircleShape getShsr(float x, float y)//функция генерирует кружок, и устанавливает все необходимые параметры
 {
@@ -52,40 +55,59 @@ CircleShape getShsr(float x, float y)//функция генерирует кр�
     return shsr;
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
-class Enemy : public  Player
+class Bass
 {
 public:
-    Enemy()
-        : speed_(100.f), directionVector_(0.0f, 0.0f)
+    Bass(float radius, float speed, Vector2f directionVector)
+    : radius_(radius), speed_(speed), directionVector_(directionVector)
     {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<> distrib(0, 400);
+        bodu_.setRadius(radius);
+        bodu_.setOutlineColor(Color::Green); // Цвет линии обводки фигуры
+        bodu_.setOutlineThickness(3);       // Толщина линии обводки фигуры
+        bodu_.setFillColor(Color::Red);    // Цвет заливки фигуры
+    }
 
-        enemies_.setRadius(10);                  // Радиус
-        enemies_.setOutlineColor(Color::Green); // Цвет линии обводки фигуры
-        enemies_.setOutlineThickness(3);       // Толщина линии обводки фигуры
-        enemies_.setFillColor(Color::Red);    // Цвет заливки фигуры
-        enemies_.setPosition({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
+    float getRadius()
+    {
+        return radius_;
     }
 
     void draw(RenderWindow& window)
     {
-        window.draw(enemies_);
+        window.draw(bodu_);
+    }   
+
+    void eat()
+    {
+        float newRadius = bodu_.getRadius() + 2; // Увеличиваем радиус шарика
+        bodu_.setRadius(newRadius); //Увеличиваем радиус шарика
+        bodu_.setOrigin({ newRadius, newRadius });
     }
 
-    void moveCamera(Vector2f& directionVector)
+    Vector2f getPosition()
     {
-        enemies_.move(directionVector);
+        return bodu_.getPosition();
     }
 
-    void move(float deltaTime)
-    {
-        float frameSpeed = speed_ * deltaTime;
-        Vector2f pos = directionVector_.normalized() * frameSpeed;
-        enemies_.move(pos);
-        directionVector_ = Vector2f(0.0f, 0.0f);
-    }
+    CircleShape bodu_;
+    float radius_;
+    float speed_;
+    Vector2f directionVector_;
+private:    
+};
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+class Enemy : public Bass
+{
+public:
+    Enemy()
+    : Bass(10.f, 200.f, { 0.0f, 0.0f })
+	{
+		random_device rd;
+		mt19937 gen(rd());
+		uniform_int_distribution<> distrib(0, 400);
+
+        bodu_.setPosition({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
+	}
 
     void setDirection(Vector2f directionVector)
     {
@@ -100,59 +122,43 @@ public:
 		}
 		else
 		{
-            //Логика примера нахождения минимального элемента в векторе.
+			Vector2f closestSphere = shsr[0].getPosition() - enemies_.getPosition();
 
+            for (int i = 1; i < shsr.size(); i++)
+            {
+                Vector2f posmin = shsr[i].getPosition() - bodu_.getPosition();
 
-			Vector2f closestSphere = shsr[0].getPosition() - enemies_.getPosition(); 
-
-			for (int i = 1; i < shsr.size(); i++)
-			{
-				Vector2f posmin = shsr[i].getPosition() - enemies_.getPosition();
-
-				//Vector2f posEn = enemies.getPosition();
-				if (posmin.length() < closestSphere.length())
-				{
-					closestSphere = posmin;
-				}				
-			}
-			directionVector_ = closestSphere;
-		}
+                if (posmin.length() < closestSphere.length())
+                {
+                    closestSphere = posmin;
+                }
+            }
+            directionVector_ = closestSphere;
+        }
     }
 
-    //void eat()
-    //{
-    //    float newRadius = enemies_.getRadius() + 2; // Увеличиваем радиус шарика
-    //    enemies_.setRadius(newRadius); //Увеличиваем радиус шарика
-    //    enemies_.setOrigin({ newRadius, newRadius });
-    //}
-
-    float getRadius()
+    void eat()
     {
-        return enemies_.getRadius();
+        float newRadius = enemies_.getRadius() + 2; // Увеличиваем радиус шарика
+        enemies_.setRadius(newRadius); //Увеличиваем радиус шарика
+        enemies_.setOrigin({ newRadius, newRadius });
     }
 
-    Vector2f getPosition()
+    void moveCamera(Vector2f& directionVector)
     {
-        return enemies_.getPosition();
+        bodu_.move(directionVector);
     }
-
-private:
-    CircleShape enemies_;
-    Vector2f directionVector_;
-    float speed_; // скорость движения пикселей в секунду
+    
+private:    
 };
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
-class Player
+class Player : public Bass
 {
 public:
     Player()
-        : directionVector_(0.0f, 0.0f), speed_(400.f)
-    {
-        glShsr_.setRadius(20);                  // Радиус
-        glShsr_.setOutlineColor(Color::Green); // Цвет линии обводки фигуры
-        glShsr_.setOutlineThickness(3);       // Толщина линии обводки фигуры
-        glShsr_.setFillColor(Color::Red);    // Цвет заливки фигуры
-        glShsr_.setPosition({ 400 - 20, 300 - 20 });
+    : Bass(20.f, 400.f, { 0.0f, 0.0f })
+    {        
+        bodu_.setPosition({ 400 - 20, 300 - 20 });
     }
 
     void setDirection(Vector2f directionVector)
@@ -160,31 +166,13 @@ public:
         directionVector_ = directionVector;
     }
 
-    Vector2f getPosition()
-    {
-        return glShsr_.getPosition();
-    }
-
     void move(float deltaTime)
     {
-        // тут у нас появляется понятие нормализации вектора
-        // нормализация это приведение вектора к длине равной 1, но сохраняя направление вектора
-        // делаем это чтобы наши шарики двигались с одинковой скоростью по диагонали
-        // длина вектора считается как квадратный корень от суммы квадратов x и y
-        // sqrt(x^2 + y^2) где sqrt - квадратный корень, ^2 - возведение в степень 2 или в квадрат
-        // на пример x = 1, y = 0 => sqrt(1^2 + 0^2) = sqrt(1 + 0) = sqrt(1) = 1
-        // на пример x = 1, y = 1 => sqrt(1^2 + 1^2) = sqrt(1 + 1) = sqrt(2) = 1.41 , т.е. почти на 40% быстрее двигаться по диагонали
-        // после нормализации получаем x = 0.71 y = 0.71, и длина вектора примерно 1
+        
         if (directionVector_ != Vector2f(0.0f, 0.0f) && gameWin == false)
         {
-            //считаем на сколько нужно сдвинуть шарики, учитывая время кадра
-            //если скорость 400 пикселей в сек, а кадр выводится за 0,0004 секунды, 
-            //значит нам нужно переместить в текущем кадре шарики всего на 1,6 пикселя, и тогда за 1 секунду мы переместимся на 400 пикселей
             float frameSpeed = speed_ * deltaTime;
-            // { 1, 0 } -> { 1, 0 }
-            // { 1, 1 } -> { 0.71, 0.71 }
-            //// { 0.24, 0 }
-            // нормализируем вектор направления и только после этого умножаем на скорость в текущем кадре
+            
             directionVector_ = directionVector_.normalized() * frameSpeed;
             for (int i = 0; i < shsr.size(); i++)
             {
@@ -195,33 +183,11 @@ public:
             {
                 enemies[i].moveCamera(directionVector_);
             }
-            directionVector_ = Vector2f(0.0f, 0.0f);// не забываем сбросить вектор направления, иначе бует двигаться даже после отпускания кнопки движения
-
-
+            directionVector_ = Vector2f(0.0f, 0.0f);
         }
     }
-
-    void eat()
-    {
-        float newRadius = glShsr_.getRadius() + 5; // Увеличиваем радиус шарика
-        glShsr_.setRadius(newRadius); //Увеличиваем радиус шарика
-        glShsr_.setOrigin({ newRadius, newRadius }); // Устанавливаем центр фигуры в центр круга, чтобы при перемещении он двигался от центраq
-    }
-
-    float getRadius()
-    {
-        return glShsr_.getRadius();
-    }
-
-    void draw(RenderWindow& window)
-    {
-        window.draw(glShsr_);
-    }
-
+    
 private:
-    CircleShape glShsr_;
-    Vector2f directionVector_; // вектор направления, сделали взамен enum direction
-    float speed_; // скорость движения пикселей в секунду
 };
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 int main()
@@ -238,7 +204,7 @@ int main()
 
     for (int i = 0; i < enemyCount; i++)
     {
-        enemies.push_back(Enemy());
+        enemies.push_back(Enemy()); // Не понимаю немного...
     }
 
     for (int i = 0; i < puls; i++)
@@ -293,7 +259,7 @@ int main()
         {
             Vector2i mousePosInt = sf::Mouse::getPosition(window);
             Vector2f mousePosFloat(static_cast<float>(mousePosInt.x), static_cast<float>(mousePosInt.y));
-            Vector2f playerPos = player.getPosition();
+            Vector2f playerPos = player.Bass::getPosition();
 
             Vector2f newDirection = playerPos - mousePosFloat;
 
@@ -304,12 +270,12 @@ int main()
 
         for (int i = 0; i < enemyCount; i++)
         {
-            Vector2f posP = player.getPosition();
-            Vector2f posE = enemies[i].getPosition();
+            Vector2f posP = player.Bass::getPosition();
+            Vector2f posE = enemies[i].Bass::getPosition();
 
             Vector2f posO = posP - posE;
 
-            if (player.getRadius() > enemies[i].getRadius())
+            if (player.Bass::getRadius() > enemies[i].Bass::getRadius())
             {
                 posO = -posO;
             }
@@ -323,16 +289,16 @@ int main()
         {
             //определяем расстояние между нашим шариком и шариком из вектора
             //такой вектор можем получить просто отняв позицию шарика из вектора от позиции нашего нарика
-            Vector2f rasoyanie = player.getPosition() - shsr[i].getPosition();
+            Vector2f rasoyanie = player.Bass::getPosition() - shsr[i].getPosition();
             //считаем сумму радиусов нашего шарика и шарика из вектора
-            int sumRad = player.getRadius() + shsr[i].getRadius();
+            int sumRad = player.Bass::getRadius() + shsr[i].getRadius();
             //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
             if (rasoyanie.length() <= sumRad) // Сначала вписывал сюда && gameWin == false
             {
                 cout << "Collision detected!" << endl;
                 shsr[i].setPosition({ distrib2(gen), distrib2(gen) }); // Переходит на случайную позицию                
 
-                player.eat(); // Увеличиваем размер игрока
+                player.Bass::eat(); // Увеличиваем размер игрока
 
                 //Прибавляем очки и делаем условие победы/
                 ochki++;
@@ -346,16 +312,15 @@ int main()
             //Проверка столкновения с ботом
             for (int j = 0; j < enemies.size(); j++)
             {
-                Vector2f conflict = enemies[j].getPosition() - shsr[i].getPosition();
-                int summRadius = enemies[j].getRadius() + shsr[i].getRadius();
+                Vector2f conflict = enemies[j].Bass::getPosition() - shsr[i].getPosition();
+                int summRadius = enemies[j].Bass::getRadius() + shsr[i].getRadius();
 
                 if (conflict.length() <= summRadius)
                 {
                     shsr[i].setPosition({ distrib2(gen), distrib2(gen) });
-                    enemies[j].eat();
+                    enemies[j].Bass::eat();
                 }
             }
-
         }
 
         // Очистка окна.
@@ -368,19 +333,19 @@ int main()
         for (int i = 0; i < shsr.size(); i++)
         {
             window.draw(shsr[i]);
-        }
-
-        player.draw(window);
-
-        for (int i = 0; i < enemyCount; i++)
-        {
-            enemies[i].draw(window);
-        }
+        }        
 
         if (gameWin)
         {
             window.draw(gameWinText);
+        }        
+
+        for (int i = 0; i < enemyCount; i++)
+        {
+            enemies[i].Bass::draw(window);
         }
+
+        player.Bass::draw(window);
 
         // Обновить окно
         window.display();
