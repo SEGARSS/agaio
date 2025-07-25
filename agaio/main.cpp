@@ -59,7 +59,7 @@ class Bass
 {
 public:
     Bass(float radius, float speed, Vector2f directionVector)
-    : radius_(radius), speed_(speed), directionVector_(directionVector)
+        : radius_(radius), speed_(speed), directionVector_(directionVector)
     {
         bodu_.setRadius(radius);
         bodu_.setOutlineColor(Color::Green); // Цвет линии обводки фигуры
@@ -75,7 +75,7 @@ public:
     void draw(RenderWindow& window)
     {
         window.draw(bodu_);
-    }   
+    }
 
     void eat()
     {
@@ -93,21 +93,21 @@ public:
     float radius_;
     float speed_;
     Vector2f directionVector_;
-private:    
+private:
 };
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Enemy : public Bass
 {
 public:
     Enemy()
-    : Bass(10.f, 200.f, { 0.0f, 0.0f })
-	{
-		random_device rd;
-		mt19937 gen(rd());
-		uniform_int_distribution<> distrib(0, 400);
+        : Bass(10.f, 200.f, { 0.0f, 0.0f })
+    {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> distrib(0, 400);
 
         bodu_.setPosition({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
-	}
+    }
 
     void setDirection(Vector2f directionVector)
     {
@@ -116,13 +116,15 @@ public:
         uniform_int_distribution<> distrib(-400, 400);
 
         //Пройтись ещё раз 
-		if (directionVector.length() <= 200)
-		{
-			directionVector_ = directionVector;
-		}
-		else
-		{
-			Vector2f closestSphere = shsr[0].getPosition() - enemies_.getPosition();
+        if (directionVector.length() <= 200)
+        {
+            directionVector_ = directionVector;
+        }
+        else
+        {
+            //Пример нахождения минимального элемента в векторе.
+            /*Пишем ноль чтобы исключить проверку на ноль, и начать с перво элемента в векторе.*/
+            Vector2f closestSphere = shsr[0].getPosition() - bodu_.getPosition();
 
             for (int i = 1; i < shsr.size(); i++)
             {
@@ -137,27 +139,28 @@ public:
         }
     }
 
-    void eat()
+    void move(float deltaTime)
     {
-        float newRadius = enemies_.getRadius() + 2; // Увеличиваем радиус шарика
-        enemies_.setRadius(newRadius); //Увеличиваем радиус шарика
-        enemies_.setOrigin({ newRadius, newRadius });
+        float frameSpeed = speed_ * deltaTime;
+        Vector2f pos = directionVector_.normalized() * frameSpeed;
+        bodu_.move(pos);
+        directionVector_ = Vector2f(0.0f, 0.0f);
     }
 
     void moveCamera(Vector2f& directionVector)
     {
         bodu_.move(directionVector);
     }
-    
-private:    
+
+private:
 };
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Player : public Bass
 {
 public:
     Player()
-    : Bass(20.f, 400.f, { 0.0f, 0.0f })
-    {        
+        : Bass(20.f, 400.f, { 0.0f, 0.0f })
+    {
         bodu_.setPosition({ 400 - 20, 300 - 20 });
     }
 
@@ -168,11 +171,11 @@ public:
 
     void move(float deltaTime)
     {
-        
+
         if (directionVector_ != Vector2f(0.0f, 0.0f) && gameWin == false)
         {
             float frameSpeed = speed_ * deltaTime;
-            
+
             directionVector_ = directionVector_.normalized() * frameSpeed;
             for (int i = 0; i < shsr.size(); i++)
             {
@@ -186,7 +189,7 @@ public:
             directionVector_ = Vector2f(0.0f, 0.0f);
         }
     }
-    
+
 private:
 };
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -204,7 +207,7 @@ int main()
 
     for (int i = 0; i < enemyCount; i++)
     {
-        enemies.push_back(Enemy()); // Не понимаю немного...
+        enemies.push_back(Enemy()); // Не понимаю немного....
     }
 
     for (int i = 0; i < puls; i++)
@@ -333,12 +336,12 @@ int main()
         for (int i = 0; i < shsr.size(); i++)
         {
             window.draw(shsr[i]);
-        }        
+        }
 
         if (gameWin)
         {
             window.draw(gameWinText);
-        }        
+        }
 
         for (int i = 0; i < enemyCount; i++)
         {
