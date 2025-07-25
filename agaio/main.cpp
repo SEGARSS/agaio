@@ -52,7 +52,7 @@ CircleShape getShsr(float x, float y)//функция генерирует кр�
     return shsr;
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
-class Enemy
+class Enemy : public  Player
 {
 public:
     Enemy()
@@ -100,7 +100,10 @@ public:
 		}
 		else
 		{
-			Vector2f closestSphere = shsr[0].getPosition() - enemies_.getPosition();
+            //Логика примера нахождения минимального элемента в векторе.
+
+
+			Vector2f closestSphere = shsr[0].getPosition() - enemies_.getPosition(); 
 
 			for (int i = 1; i < shsr.size(); i++)
 			{
@@ -116,12 +119,12 @@ public:
 		}
     }
 
-    void eat()
-    {
-        float newRadius = enemies_.getRadius() + 2; // Увеличиваем радиус шарика
-        enemies_.setRadius(newRadius); //Увеличиваем радиус шарика
-        enemies_.setOrigin({ newRadius, newRadius });
-    }
+    //void eat()
+    //{
+    //    float newRadius = enemies_.getRadius() + 2; // Увеличиваем радиус шарика
+    //    enemies_.setRadius(newRadius); //Увеличиваем радиус шарика
+    //    enemies_.setOrigin({ newRadius, newRadius });
+    //}
 
     float getRadius()
     {
