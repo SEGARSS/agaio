@@ -67,9 +67,17 @@ public:
         bodu_.setFillColor(Color::Red);    // Цвет заливки фигуры
     }
 
+    void resetRadius()
+    {
+        radius_ = 20.f; // Сброс до значения по умолчанию
+        bodu_.setRadius(radius_); // Обновление радиуса фигуры
+        bodu_.setOrigin({ radius_, radius_ }); // Обновление центра фигуры
+    }
+
     float getRadius()
     {
-        return radius_;
+        //return radius_;
+        return bodu_.getRadius(); // Вторйо вариант объявления
     }
 
     void draw(RenderWindow& window)
@@ -77,17 +85,23 @@ public:
         window.draw(bodu_);
     }
 
-    void eat()
+    void eat(float size = 2.f)
     {
-        float newRadius = bodu_.getRadius() + 2; // Увеличиваем радиус шарика
+        float newRadius = bodu_.getRadius() + size; // Увеличиваем радиус шарика
+        radius_ = newRadius; // Обновляем радиус в Bass
         bodu_.setRadius(newRadius); //Увеличиваем радиус шарика
         bodu_.setOrigin({ newRadius, newRadius });
+
+        speed_ = speed_ - size;
     }
 
     Vector2f getPosition()
     {
         return bodu_.getPosition();
     }
+
+    virtual void setDirection(Vector2f directionVector) = 0;
+    virtual void move(float deltaTime) = 0;
 
     CircleShape bodu_;
     float radius_;
@@ -100,7 +114,7 @@ class Enemy : public Bass
 {
 public:
     Enemy()
-        : Bass(10.f, 200.f, { 0.0f, 0.0f })
+        : Bass(20.f, 200.f, { 0.0f, 0.0f })
     {
         random_device rd;
         mt19937 gen(rd());
@@ -109,7 +123,7 @@ public:
         bodu_.setPosition({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
     }
 
-    void setDirection(Vector2f directionVector)
+    void setDirection(Vector2f directionVector) override
     {
         random_device rd;
         mt19937 gen(rd());
@@ -139,7 +153,7 @@ public:
         }
     }
 
-    void move(float deltaTime)
+    void move(float deltaTime) override
     {
         float frameSpeed = speed_ * deltaTime;
         Vector2f pos = directionVector_.normalized() * frameSpeed;
@@ -164,12 +178,12 @@ public:
         bodu_.setPosition({ 400 - 20, 300 - 20 });
     }
 
-    void setDirection(Vector2f directionVector)
+    void setDirection(Vector2f directionVector) override
     {
         directionVector_ = directionVector;
     }
 
-    void move(float deltaTime)
+    void move(float deltaTime) override
     {
 
         if (directionVector_ != Vector2f(0.0f, 0.0f) && gameWin == false)
@@ -207,7 +221,9 @@ int main()
 
     for (int i = 0; i < enemyCount; i++)
     {
-        enemies.push_back(Enemy()); // Не понимаю немного....
+        Enemy enemy;
+        enemies.push_back(enemy); 
+        //enemies.push_back(Enemy()); // Вторйо вариант объявления
     }
 
     for (int i = 0; i < puls; i++)
@@ -216,6 +232,11 @@ int main()
     }
 
     Clock frameClock; //счетчик, чтобы считать время, за которое выводится кадр(frame), 1 сек / на это время = fps (кадры в сек)
+
+    Clock clockEnemyShoot; // Создаём часы (начало таймера)
+    chrono::milliseconds tickEnemyShoot(1500); // После какого времени таймер начал делать всё сначала или сброс.
+
+    Clock clock;
 
     window.setFramerateLimit(60); //ограничим fps чтобы не было рывков в движении шариков 
     window.setVerticalSyncEnabled(true); //оптимизация тоже для увеличения плавности
@@ -234,6 +255,13 @@ int main()
     gameWinText.setFillColor(Color::Blue);//Цвет текста
     gameWinText.setPosition(sf::Vector2f(50.0f - 10, 300.0f - 60));
 
+    Text gameOverText(font, L"Ты лузер, проиграл!"); //L - чтоб были русские буквы вместо крякозябры.
+    gameOverText.setCharacterSize(60); //Размер текста
+    gameOverText.setStyle(Text::Bold);//Стиль текста
+    gameOverText.setFillColor(Color::Red);//Цвет текста
+    gameOverText.setPosition(sf::Vector2f(120.0f - 60, 300.0f - 60));
+
+    bool gameOver = false;
 
     // Начать игровой цикл
     while (window.isOpen())
@@ -255,6 +283,20 @@ int main()
             //Нажатие клавишь
             if (event->is<Event::KeyPressed>())
             {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter))
+                {
+                    if (gameOver == true || gameWin == true)
+                    {
+                        for (int i = 0; i < enemyCount; i++)
+                        {
+                            enemies.push_back(Enemy());
+                        }
+                        ochki = 0;
+                        gameOver = false;
+                        gameWin = false;
+                        player.Bass::resetRadius();
+                    }
+                }
             }
         }
 
@@ -271,14 +313,14 @@ int main()
 
         player.move(deltaTime);
 
-        for (int i = 0; i < enemyCount; i++)
+        for (int i = 0; i < enemies.size(); i++)
         {
             Vector2f posP = player.Bass::getPosition();
             Vector2f posE = enemies[i].Bass::getPosition();
 
             Vector2f posO = posP - posE;
 
-            if (player.Bass::getRadius() > enemies[i].Bass::getRadius())
+            if (player.Bass::getRadius() >= enemies[i].Bass::getRadius())
             {
                 posO = -posO;
             }
@@ -286,6 +328,39 @@ int main()
             enemies[i].setDirection(posO);
             enemies[i].move(deltaTime);
         }
+
+        //цикл определения столкновения с врагами
+        for (int i = 0; i < enemies.size(); ++i)
+        {
+            //определяем расстояние между нашим шариком и шариком из вектора
+            //такой вектор можем получить просто отняв позицию шарика из вектора от позиции нашего нарика
+            Vector2f rasoyanie = player.Bass::getPosition() - enemies[i].getPosition();
+            //считаем сумму радиусов нашего шарика и шарика из вектора
+            int sumRad = player.Bass::getRadius() + enemies[i].getRadius();
+            //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
+            if (rasoyanie.length() <= sumRad) // Сначала вписывал сюда && gameWin == false
+            {
+                if (player.Bass::getRadius() > enemies[i].Bass::getRadius())
+                {                    
+                    player.Bass::eat(enemies[i].getRadius() / 2); // Увеличиваем размер игрока
+                    ochki += enemies[i].getRadius() / 2;
+                    enemies.erase(enemies.begin() + i); // Удаляем врага из вектора
+
+                    //Прибавляем очки и делаем условие победы/
+                    if (ochki == 120)
+                    {
+                        gameWin = true;
+                    }
+                    continue;
+                }
+                else
+                {
+                    enemies.clear();
+                    gameOver = true;
+                }                
+            }
+        }
+
 
         //цикл определения столкновения с шариками
         for (int i = 0; i < shsr.size(); i++)
@@ -343,9 +418,14 @@ int main()
             window.draw(gameWinText);
         }
 
-        for (int i = 0; i < enemyCount; i++)
+        for (int i = 0; i < enemies.size(); i++)
         {
             enemies[i].Bass::draw(window);
+        }
+
+        if (gameOver)
+        {
+            window.draw(gameOverText);
         }
 
         player.Bass::draw(window);
