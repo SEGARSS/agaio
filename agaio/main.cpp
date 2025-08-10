@@ -5,8 +5,23 @@
 #include <chrono>
 #include <vector>
 
+#include "Enemy.h"
+#include "Player.h"
+
 using namespace std;
 using namespace sf;
+
+namespace Game {
+    enum class State {
+        NameInput,
+        Play,
+        GameEnd,
+    };
+};
+
+
+Game::State currentState = Game::State::Play;
+
 
 //--------------------------------------------------------------------------------
 // Функция для генерации случайных чисел
@@ -36,7 +51,7 @@ vector<Enemy> enemies;
 bool gameWin = false;
 
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 CircleShape getShsr(float x, float y)//функция генерирует кружок, и устанавливает все необходимые параметры
 {
     CircleShape shsr;
@@ -54,159 +69,21 @@ CircleShape getShsr(float x, float y)//функция генерирует кр�
 
     return shsr;
 }
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------
-class Base
-{
-public:
-    Base(float radius, float speed, Vector2f directionVector)
-        : radius_(radius), speed_(speed), directionVector_(directionVector)
-    {
-        bodu_.setRadius(radius);
-        bodu_.setOutlineColor(Color::Green); // Цвет линии обводки фигуры
-        bodu_.setOutlineThickness(3);       // Толщина линии обводки фигуры
-        bodu_.setFillColor(Color::Red);    // Цвет заливки фигуры
-    }    
+//------------------------------------------------------------------------------------
+void generateWorld() {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distrib(0, 1000);
 
-    float getRadius()
+    shsr.clear();
+    for (int i = 0; i < puls; i++)
     {
-        //return radius_;
-        return bodu_.getRadius(); // Вторйо вариант объявления
+        shsr.push_back(getShsr(distrib(gen), distrib(gen)));
     }
+}
 
-    void draw(RenderWindow& window)
-    {
-        window.draw(bodu_);
-    }
 
-    void eat(float size = 2.f)
-    {
-        float newRadius = bodu_.getRadius() + size; // Увеличиваем радиус шарика
-        radius_ = newRadius; // Обновляем радиус в Base
-        bodu_.setRadius(newRadius); //Увеличиваем радиус шарика
-        bodu_.setOrigin({ newRadius, newRadius });
-
-        speed_ = speed_ - size;
-    }
-
-    Vector2f getPosition()
-    {
-        return bodu_.getPosition();
-    }
-
-    virtual void setDirection(Vector2f directionVector) = 0;
-    virtual void move(float deltaTime) = 0;
-
-    CircleShape bodu_;
-    float radius_;
-    float speed_;
-    Vector2f directionVector_;
-private:
-};
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------
-class Enemy : public Base
-{
-public:
-    Enemy()
-        : Base(20.f, 200.f, { 0.0f, 0.0f })
-    {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<> distrib(0, 400);
-
-        bodu_.setPosition({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
-    }
-
-    void setDirection(Vector2f directionVector) override
-    {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<> distrib(-400, 400);
-
-        //Пройтись ещё раз 
-        if (directionVector.length() <= 200)
-        {
-            directionVector_ = directionVector;
-        }
-        else
-        {
-            //Пример нахождения минимального элемента в векторе.
-            /*Пишем ноль чтобы исключить проверку на ноль, и начать с перво элемента в векторе.*/
-            Vector2f closestSphere = shsr[0].getPosition() - bodu_.getPosition();
-
-            for (int i = 1; i < shsr.size(); i++)
-            {
-                Vector2f posmin = shsr[i].getPosition() - bodu_.getPosition();
-
-                if (posmin.length() < closestSphere.length())
-                {
-                    closestSphere = posmin;
-                }
-            }
-            directionVector_ = closestSphere;
-        }
-    }
-
-    void move(float deltaTime) override
-    {
-        float frameSpeed = speed_ * deltaTime;
-        Vector2f pos = directionVector_.normalized() * frameSpeed;
-        bodu_.move(pos);
-        directionVector_ = Vector2f(0.0f, 0.0f);
-    }    
-
-    void moveCamera(Vector2f& directionVector)
-    {
-        bodu_.move(directionVector);
-    }
-
-private:
-};
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------
-class Player : public Base
-{
-public:
-    Player()
-        : Base(20.f, 400.f, { 0.0f, 0.0f })
-    {
-        bodu_.setPosition({ 400 - 20, 300 - 20 });
-    }
-
-    void setDirection(Vector2f directionVector) override
-    {
-        directionVector_ = directionVector;
-    }
-
-    void move(float deltaTime) override
-    {
-
-        if (directionVector_ != Vector2f(0.0f, 0.0f) && gameWin == false)
-        {
-            float frameSpeed = speed_ * deltaTime;
-
-            directionVector_ = directionVector_.normalized() * frameSpeed;
-            for (int i = 0; i < shsr.size(); i++)
-            {
-                shsr[i].move(directionVector_);
-            }
-
-            for (int i = 0; i < enemies.size(); i++)
-            {
-                enemies[i].moveCamera(directionVector_);
-            }
-            directionVector_ = Vector2f(0.0f, 0.0f);
-        }
-    }
-
-    void resetRadius()
-    {
-        radius_ = 20.f; // Сброс до значения по умолчанию
-        bodu_.setRadius(radius_); // Обновление радиуса фигуры
-        bodu_.setOrigin({ radius_, radius_ }); // Обновление центра фигуры
-    }
-
-private:
-};
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 int main()
 {
     // Create the main window
@@ -222,14 +99,11 @@ int main()
     for (int i = 0; i < enemyCount; i++)
     {
         Enemy enemy;
-        enemies.push_back(enemy); 
+        enemies.push_back(enemy);
         //enemies.push_back(Enemy()); // Вторйо вариант объявления
     }
 
-    for (int i = 0; i < puls; i++)
-    {
-        shsr.push_back(getShsr(distrib(gen), distrib(gen)));
-    }
+    generateWorld();
 
     Clock frameClock; //счетчик, чтобы считать время, за которое выводится кадр(frame), 1 сек / на это время = fps (кадры в сек)
 
@@ -266,172 +140,206 @@ int main()
     // Начать игровой цикл
     while (window.isOpen())
     {
-        // переменная в которой считаем время за которое выводится кадр
-        // понятие deltaTime есть во многих движках, и везде оно обозначает одно и то же - время за которое выводится кадр
-        float deltaTime = frameClock.getElapsedTime().asSeconds();
-
-        std::cout << deltaTime << std::endl;
-        cout << "fps: " << 1.f / deltaTime << "\n"; // просто для наглядности сколько сейчас у нас fps
-        frameClock.restart(); // важно сбрасывать счетчик каждый кадр, чтобы считать именно время кадра
-
-        // События процесса
-        while (const std::optional event = window.pollEvent())
+        switch (currentState)
+        {        
+        case Game::State::NameInput:
         {
-            // Закрыть окно: выход
-            if (event->is<sf::Event::Closed>())
-                window.close();
-            //Нажатие клавишь
-            if (event->is<Event::KeyPressed>())
+
+            break;
+        }
+        case Game::State::Play:
+        {
+            // переменная в которой считаем время за которое выводится кадр
+            // понятие deltaTime есть во многих движках, и везде оно обозначает одно и то же - время за которое выводится кадр
+            float deltaTime = frameClock.getElapsedTime().asSeconds();
+
+            std::cout << deltaTime << std::endl;
+            cout << "fps: " << 1.f / deltaTime << "\n"; // просто для наглядности сколько сейчас у нас fps
+            frameClock.restart(); // важно сбрасывать счетчик каждый кадр, чтобы считать именно время кадра
+
+            // События процесса
+            while (const std::optional event = window.pollEvent())
             {
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter))
+                // Закрыть окно: выход
+                if (event->is<sf::Event::Closed>())
+                    window.close();
+            }
+
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+            {
+                Vector2i mousePosInt = sf::Mouse::getPosition(window);
+                Vector2f mousePosFloat(static_cast<float>(mousePosInt.x), static_cast<float>(mousePosInt.y));
+                Vector2f playerPos = player.Base::getPosition();
+
+                Vector2f newDirection = playerPos - mousePosFloat;
+
+                player.setDirection(newDirection);
+            }
+
+            player.move(deltaTime);
+
+            for (int i = 0; i < enemies.size(); i++)
+            {
+                Vector2f posP = player.Base::getPosition();
+                Vector2f posE = enemies[i].Base::getPosition();
+
+                Vector2f posO = posP - posE;
+
+                if (player.Base::getRadius() >= enemies[i].Base::getRadius())
                 {
-                    if (gameOver == true || gameWin == true)
+                    posO = -posO;
+                }
+
+                enemies[i].setDirection(posO);
+                enemies[i].move(deltaTime);
+            }
+
+            //цикл определения столкновения с врагами
+            for (int i = 0; i < enemies.size(); ++i)
+            {
+                //определяем расстояние между нашим шариком и шариком из вектора
+                //такой вектор можем получить просто отняв позицию шарика из вектора от позиции нашего нарика
+                Vector2f rasoyanie = player.Base::getPosition() - enemies[i].getPosition();
+                //считаем сумму радиусов нашего шарика и шарика из вектора
+                int sumRad = player.Base::getRadius() + enemies[i].getRadius();
+                //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
+                if (rasoyanie.length() <= sumRad) // Сначала вписывал сюда && gameWin == false
+                {
+                    if (player.Base::getRadius() > enemies[i].Base::getRadius())
                     {
-                        for (int i = 0; i < enemyCount; i++)
+                        player.Base::eat(enemies[i].getRadius() / 2); // Увеличиваем размер игрока
+                        ochki += enemies[i].getRadius() / 2;
+                        enemies.erase(enemies.begin() + i); // Удаляем врага из вектора
+
+                        //Прибавляем очки и делаем условие победы/
+                        if (ochki == 120)
                         {
-                            enemies.push_back(Enemy());
+                            gameWin = true;
+                            currentState = Game::State::GameEnd;
                         }
-                        ochki = 0;
-                        gameOver = false;
-                        gameWin = false;
-                        player.resetRadius();
+                        continue;
+                    }
+                    else
+                    {
+                        enemies.clear();
+                        gameOver = true;
+                        currentState = Game::State::GameEnd;
                     }
                 }
             }
-        }
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
-        {
-            Vector2i mousePosInt = sf::Mouse::getPosition(window);
-            Vector2f mousePosFloat(static_cast<float>(mousePosInt.x), static_cast<float>(mousePosInt.y));
-            Vector2f playerPos = player.Base::getPosition();
 
-            Vector2f newDirection = playerPos - mousePosFloat;
-
-            player.setDirection(newDirection);
-        }
-
-        player.move(deltaTime);
-
-        for (int i = 0; i < enemies.size(); i++)
-        {
-            Vector2f posP = player.Base::getPosition();
-            Vector2f posE = enemies[i].Base::getPosition();
-
-            Vector2f posO = posP - posE;
-
-            if (player.Base::getRadius() >= enemies[i].Base::getRadius())
+            //цикл определения столкновения с шариками
+            for (int i = 0; i < shsr.size(); i++)
             {
-                posO = -posO;
-            }
+                //определяем расстояние между нашим шариком и шариком из вектора
+                //такой вектор можем получить просто отняв позицию шарика из вектора от позиции нашего нарика
+                Vector2f rasoyanie = player.Base::getPosition() - shsr[i].getPosition();
+                //считаем сумму радиусов нашего шарика и шарика из вектора
+                int sumRad = player.Base::getRadius() + shsr[i].getRadius();
+                //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
+                if (rasoyanie.length() <= sumRad) // Сначала вписывал сюда && gameWin == false
+                {
+                    cout << "Collision detected!" << endl;
+                    shsr[i].setPosition({ distrib2(gen), distrib2(gen) }); // Переходит на случайную позицию                
 
-            enemies[i].setDirection(posO);
-            enemies[i].move(deltaTime);
-        }
-
-        //цикл определения столкновения с врагами
-        for (int i = 0; i < enemies.size(); ++i)
-        {
-            //определяем расстояние между нашим шариком и шариком из вектора
-            //такой вектор можем получить просто отняв позицию шарика из вектора от позиции нашего нарика
-            Vector2f rasoyanie = player.Base::getPosition() - enemies[i].getPosition();
-            //считаем сумму радиусов нашего шарика и шарика из вектора
-            int sumRad = player.Base::getRadius() + enemies[i].getRadius();
-            //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
-            if (rasoyanie.length() <= sumRad) // Сначала вписывал сюда && gameWin == false
-            {
-                if (player.Base::getRadius() > enemies[i].Base::getRadius())
-                {                    
-                    player.Base::eat(enemies[i].getRadius() / 2); // Увеличиваем размер игрока
-                    ochki += enemies[i].getRadius() / 2;
-                    enemies.erase(enemies.begin() + i); // Удаляем врага из вектора
+                    player.Base::eat(); // Увеличиваем размер игрока
 
                     //Прибавляем очки и делаем условие победы/
+                    ochki++;
                     if (ochki == 120)
                     {
                         gameWin = true;
+                        currentState = Game::State::GameEnd;
                     }
                     continue;
                 }
-                else
+
+                //Проверка столкновения с ботом
+                for (int j = 0; j < enemies.size(); j++)
                 {
-                    enemies.clear();
-                    gameOver = true;
-                }                
-            }
-        }
+                    Vector2f conflict = enemies[j].Base::getPosition() - shsr[i].getPosition();
+                    int summRadius = enemies[j].Base::getRadius() + shsr[i].getRadius();
 
-
-        //цикл определения столкновения с шариками
-        for (int i = 0; i < shsr.size(); i++)
-        {
-            //определяем расстояние между нашим шариком и шариком из вектора
-            //такой вектор можем получить просто отняв позицию шарика из вектора от позиции нашего нарика
-            Vector2f rasoyanie = player.Base::getPosition() - shsr[i].getPosition();
-            //считаем сумму радиусов нашего шарика и шарика из вектора
-            int sumRad = player.Base::getRadius() + shsr[i].getRadius();
-            //если расстояние между шариками меньше или равно сумме радиусов - значит шарики столкнулись
-            if (rasoyanie.length() <= sumRad) // Сначала вписывал сюда && gameWin == false
-            {
-                cout << "Collision detected!" << endl;
-                shsr[i].setPosition({ distrib2(gen), distrib2(gen) }); // Переходит на случайную позицию                
-
-                player.Base::eat(); // Увеличиваем размер игрока
-
-                //Прибавляем очки и делаем условие победы/
-                ochki++;
-                if (ochki == 120)
-                {
-                    gameWin = true;
-                }
-                continue;
-            }
-
-            //Проверка столкновения с ботом
-            for (int j = 0; j < enemies.size(); j++)
-            {
-                Vector2f conflict = enemies[j].Base::getPosition() - shsr[i].getPosition();
-                int summRadius = enemies[j].Base::getRadius() + shsr[i].getRadius();
-
-                if (conflict.length() <= summRadius)
-                {
-                    shsr[i].setPosition({ distrib2(gen), distrib2(gen) });
-                    enemies[j].Base::eat();
+                    if (conflict.length() <= summRadius)
+                    {
+                        shsr[i].setPosition({ distrib2(gen), distrib2(gen) });
+                        enemies[j].Base::eat();
+                    }
                 }
             }
+
+            // Очистка окна.
+            window.clear();
+
+            //Рисуем вывод очков на доске
+            text.setString(L"очки " + std::to_string(ochki));//Конвертируем int в string.(to_string)
+            window.draw(text);
+
+            for (int i = 0; i < shsr.size(); i++)
+            {
+                window.draw(shsr[i]);
+            }
+
+            for (int i = 0; i < enemies.size(); i++)
+            {
+                enemies[i].Base::draw(window);
+            }
+
+            player.Base::draw(window);
+            break;
         }
+        case Game::State::GameEnd: {
+            // События процесса
+            while (const std::optional event = window.pollEvent())
+            {
+                // Закрыть окно: выход
+                if (event->is<sf::Event::Closed>())
+                    window.close();
+                //Нажатие клавишь
+                if (event->is<Event::KeyPressed>())
+                {
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter))
+                    {
+                        if (gameOver == true || gameWin == true)
+                        {
+                            for (int i = 0; i < enemyCount; i++)
+                            {
+                                enemies.push_back(Enemy());
+                            }
+                            ochki = 0;
+                            gameOver = false;
+                            gameWin = false;
+                            player = Player();
+                            generateWorld();
+                            currentState = Game::State::Play;
+                            //player.resetRadius();
+                        }
+                    }
+                }
+            }
 
-        // Очистка окна.
-        window.clear();
+            // Очистка окна.
+            window.clear();
 
-        //Рисуем вывод очков на доске
-        text.setString(L"очки " + std::to_string(ochki));//Конвертируем int в string.(to_string)
-        window.draw(text);
+            if (gameWin)
+            {
+                window.draw(gameWinText);
+            }
 
-        for (int i = 0; i < shsr.size(); i++)
-        {
-            window.draw(shsr[i]);
+            if (gameOver)
+            {
+                window.draw(gameOverText);
+            }
+
+            break;
         }
-
-        if (gameWin)
-        {
-            window.draw(gameWinText);
+        default:
+            break;
         }
-
-        for (int i = 0; i < enemies.size(); i++)
-        {
-            enemies[i].Base::draw(window);
-        }
-
-        if (gameOver)
-        {
-            window.draw(gameOverText);
-        }
-
-        player.Base::draw(window);
 
         // Обновить окно
         window.display();
     }
 }
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
