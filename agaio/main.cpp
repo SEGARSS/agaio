@@ -116,7 +116,7 @@ int main()
     text.setStyle(Text::Bold);//Стиль текста
     text.setFillColor(Color::Blue);//Цвет текста
 
-    Text nic(font, L"Ник 0"); //L - чтоб были русские буквы вместо крякозябры.
+    Text nic(font, L"Ник "); //L - чтоб были русские буквы вместо крякозябры.
     nic.setCharacterSize(30); //Размер текста
     nic.setStyle(Text::Bold);//Стиль текста
     nic.setFillColor(Color::Red);//Цвет текста
@@ -319,7 +319,7 @@ int main()
             text.setString(L"очки " + std::to_string(ochki));//Конвертируем int в string.(to_string)
             window.draw(text);
 
-            nic.setString((playerName));
+            nic.setString(L"Ник " + (playerName));
             window.draw(nic);
 
             for (int i = 0; i < shsr.size(); i++)
