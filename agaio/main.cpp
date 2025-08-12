@@ -25,18 +25,10 @@ Game::State currentState = Game::State::NameInput;
 std::string playerName;
 
 //---------------------------------------------------------------------------------------------------------------
-// Функция для генерации случайных чисел
-
 /*
-Размер мира будет 1000х1000
-*/
-
-/*
- - рефакторинг игрока (создать класс, перенести туда все переменные и методы)
- - создать класс для ботов
-    - случайное направление движения, если игрока нет рядом
-    - следовать за игроком, если он рядом
- - доработать уменьшение мира при увеличении размера игрока
+1. Мы уже храним ввод от игрока в переменной playerName. Нужно вывести эту переменную на экран, чтобы игрок видел что он вводит
+2. добавить обработку окончания ввода. т е когда игрок нажимает Enter - нужно сменить состояние игры на Play
+3. и по хорошему когда играем можно тоже выводить имя игрока где-то в углу
 */
 
 int puls = 50;
@@ -124,6 +116,12 @@ int main()
     text.setStyle(Text::Bold);//Стиль текста
     text.setFillColor(Color::Blue);//Цвет текста
 
+    Text nic(font, L"Ник 0"); //L - чтоб были русские буквы вместо крякозябры.
+    nic.setCharacterSize(30); //Размер текста
+    nic.setStyle(Text::Bold);//Стиль текста
+    nic.setFillColor(Color::Red);//Цвет текста
+    nic.setPosition(sf::Vector2f(250.0f, 200.0f));
+
     Text gameWinText(font, L"Подзравляю, Вы выиграли Игру!"); //L - чтоб были русские буквы вместо крякозябры.
     gameWinText.setCharacterSize(40); //Размер текста
     gameWinText.setStyle(Text::Bold);//Стиль текста
@@ -135,6 +133,12 @@ int main()
     gameOverText.setStyle(Text::Bold);//Стиль текста
     gameOverText.setFillColor(Color::Red);//Цвет текста
     gameOverText.setPosition(sf::Vector2f(120.0f - 60, 300.0f - 60));
+
+    Text textEntered(font, "Имя"); //L - чтоб были русские буквы вместо крякозябры.
+    textEntered.setCharacterSize(60); //Размер текста
+    textEntered.setStyle(Text::Bold);//Стиль текста
+    textEntered.setFillColor(Color::Red);//Цвет текста
+    textEntered.setPosition(sf::Vector2f(120.0f - 60, 300.0f - 60));
 
     bool gameOver = false;
 
@@ -155,21 +159,34 @@ int main()
                 //Ввод текста
                 if (const auto* textEntered = event->getIf<sf::Event::TextEntered>())
                 {
-                    if (textEntered->unicode < 128) {
+                    if (textEntered->unicode < 128) 
+                    {
                         if (textEntered->unicode == '\b' && playerName != "")
                         {
                             playerName.pop_back();
                         }
-                        else {
+                        else 
+                        {
                             playerName += static_cast<char>(textEntered->unicode);
                         }
                     }
+                    
                     std::cout << playerName << std::endl;
                 }
             }
 
-            /// <-----
+            // Очистка окна.
+            window.clear();
 
+            nic.setString((playerName));
+            window.draw(nic);
+
+            // Очистка окна.
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter))
+            {                
+                currentState = Game::State::Play;
+                nic.setPosition(sf::Vector2f(600.0f, 0.0f));
+            }            
 
             break;
         }
@@ -302,6 +319,9 @@ int main()
             text.setString(L"очки " + std::to_string(ochki));//Конвертируем int в string.(to_string)
             window.draw(text);
 
+            nic.setString((playerName));
+            window.draw(nic);
+
             for (int i = 0; i < shsr.size(); i++)
             {
                 window.draw(shsr[i]);
@@ -315,7 +335,8 @@ int main()
             player.Base::draw(window);
             break;
         }
-        case Game::State::GameEnd: {
+        case Game::State::GameEnd: 
+        {
             // События процесса
             while (const std::optional event = window.pollEvent())
             {
