@@ -5,6 +5,7 @@ extern bool gameWin;
 extern vector<CircleShape> shsr;
 extern vector<Enemy> enemies;
 
+//---------------------------------------------------------------------------------------------------------------
 Enemy::Enemy()
     : Base(20.f, 200.f, { 0.0f, 0.0f })
 {
@@ -14,7 +15,7 @@ Enemy::Enemy()
 
     bodu_.setPosition({ static_cast<float>(distrib(gen)), static_cast<float>(distrib(gen)) });
 }
-
+//---------------------------------------------------------------------------------------------------------------
 void Enemy::setDirection(Vector2f directionVector)
 {
     random_device rd;
@@ -44,7 +45,7 @@ void Enemy::setDirection(Vector2f directionVector)
         directionVector_ = closestSphere;
     }
 }
-
+//---------------------------------------------------------------------------------------------------------------
 void Enemy::move(float deltaTime)
 {
     float frameSpeed = speed_ * deltaTime;
@@ -52,8 +53,9 @@ void Enemy::move(float deltaTime)
     bodu_.move(pos);
     directionVector_ = Vector2f(0.0f, 0.0f);
 }
-
+//---------------------------------------------------------------------------------------------------------------
 void Enemy::moveCamera(Vector2f& directionVector)
 {
     bodu_.move(directionVector);
 }
+//---------------------------------------------------------------------------------------------------------------

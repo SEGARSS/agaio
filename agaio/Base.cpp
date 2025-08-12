@@ -1,6 +1,7 @@
 #include "Base.h"
 
 
+//---------------------------------------------------------------------------------------------------------------
 Base::Base(float radius, float speed, Vector2f directionVector)
     : radius_(radius), speed_(speed), directionVector_(directionVector)
 {
@@ -9,18 +10,18 @@ Base::Base(float radius, float speed, Vector2f directionVector)
     bodu_.setOutlineThickness(3);       // Толщина линии обводки фигуры
     bodu_.setFillColor(Color::Red);    // Цвет заливки фигуры
 }
-
+//---------------------------------------------------------------------------------------------------------------
 float Base::getRadius()
 {
     //return radius_;
     return bodu_.getRadius(); // Вторйо вариант объявления
 }
-
+//---------------------------------------------------------------------------------------------------------------
 void Base::draw(RenderWindow& window)
 {
     window.draw(bodu_);
 }
-
+//---------------------------------------------------------------------------------------------------------------
 void Base::eat(float size)
 {
     float newRadius = bodu_.getRadius() + size; // Увеличиваем радиус шарика
@@ -30,8 +31,9 @@ void Base::eat(float size)
 
     speed_ = speed_ - size;
 }
-
+//---------------------------------------------------------------------------------------------------------------
 Vector2f Base::getPosition()
 {
     return bodu_.getPosition();
 }
+//---------------------------------------------------------------------------------------------------------------

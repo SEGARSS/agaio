@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <string>
 
 #include "Enemy.h"
 #include "Player.h"
@@ -20,10 +21,10 @@ namespace Game {
 };
 
 
-Game::State currentState = Game::State::Play;
+Game::State currentState = Game::State::NameInput;
+std::string playerName;
 
-
-//--------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
 // Функция для генерации случайных чисел
 
 /*
@@ -51,7 +52,7 @@ vector<Enemy> enemies;
 bool gameWin = false;
 
 
-//------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
 CircleShape getShsr(float x, float y)//функция генерирует кружок, и устанавливает все необходимые параметры
 {
     CircleShape shsr;
@@ -69,7 +70,7 @@ CircleShape getShsr(float x, float y)//функция генерирует кр�
 
     return shsr;
 }
-//------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
 void generateWorld() {
     random_device rd;
     mt19937 gen(rd());
@@ -83,7 +84,7 @@ void generateWorld() {
 }
 
 
-//------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
 int main()
 {
     // Create the main window
@@ -141,9 +142,34 @@ int main()
     while (window.isOpen())
     {
         switch (currentState)
-        {        
+        {
         case Game::State::NameInput:
         {
+            // События процесса
+            while (const std::optional event = window.pollEvent())
+            {
+                // Закрыть окно: выход
+                if (event->is<sf::Event::Closed>())
+                    window.close();
+
+                //Ввод текста
+                if (const auto* textEntered = event->getIf<sf::Event::TextEntered>())
+                {
+                    if (textEntered->unicode < 128) {
+                        if (textEntered->unicode == '\b' && playerName != "")
+                        {
+                            playerName.pop_back();
+                        }
+                        else {
+                            playerName += static_cast<char>(textEntered->unicode);
+                        }
+                    }
+                    std::cout << playerName << std::endl;
+                }
+            }
+
+            /// <-----
+
 
             break;
         }
@@ -342,4 +368,4 @@ int main()
         window.display();
     }
 }
-//------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------
