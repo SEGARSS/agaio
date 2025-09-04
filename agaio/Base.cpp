@@ -64,11 +64,11 @@ void Base::decreaseSpeedUpTime(int time)//Уменьшаем (- к таймеру)
     {
         speedUpTime -= std::chrono::milliseconds(time);
     }
-    else
+    else if (speedUpTime > std::chrono::milliseconds(0))
     {
         speedUpTime = std::chrono::milliseconds(0);
         speed_ = defaultSpeed;
-    }    
+    }
 }
 //---------------------------------------------------------------------------------------------------------------
 int Base::getSpeedUpTime()
