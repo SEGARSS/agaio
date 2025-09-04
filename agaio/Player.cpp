@@ -8,7 +8,7 @@ extern vector<Enemy> enemies;
 
 //---------------------------------------------------------------------------------------------------------------
 Player::Player()
-: Base(20.f, 400.f, { 0.0f, 0.0f })
+    : Base(20.f, 400.f, { 0.0f, 0.0f })
 {
     bodu_.setPosition({ 400 - 20, 300 - 20 });
 }
@@ -35,7 +35,7 @@ void Player::move(float deltaTime)
         {
             enemies[i].moveCamera(directionVector_);
         }
-        directionVector_ = Vector2f(0.0f, 0.0f);
+        //directionVector_ = Vector2f(0.0f, 0.0f);
     }
 }
 //---------------------------------------------------------------------------------------------------------------

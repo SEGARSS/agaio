@@ -23,6 +23,7 @@ public:
     Vector2f getPosition();
 
     virtual void setDirection(Vector2f directionVector) = 0;
+    virtual Vector2f getDirection();
     virtual void move(float deltaTime) = 0;
 
     CircleShape bodu_;

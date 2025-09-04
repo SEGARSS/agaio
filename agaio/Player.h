@@ -9,6 +9,7 @@ public:
     Player();
 
     void setDirection(Vector2f directionVector) override;
+
     void move(float deltaTime) override;
 
     void resetRadius();
