@@ -42,3 +42,37 @@ Vector2f Base::getDirection()
     return directionVector_;
 }
 //---------------------------------------------------------------------------------------------------------------
+float Base::getSpeed()
+{
+    return speed_;
+}
+//---------------------------------------------------------------------------------------------------------------
+void Base::setSpeed(float speed)
+{
+     defaultSpeed = speed_;
+     speed_ = speed;
+}
+//---------------------------------------------------------------------------------------------------------------
+void Base::increaseSpeedUpTime(int time) //Прибавляем (+ к таймеру)
+{
+    speedUpTime += std::chrono::milliseconds(time);
+}
+//---------------------------------------------------------------------------------------------------------------
+void Base::decreaseSpeedUpTime(int time)//Уменьшаем (- к таймеру)
+{
+    if (speedUpTime > std::chrono::milliseconds(time))
+    {
+        speedUpTime -= std::chrono::milliseconds(time);
+    }
+    else
+    {
+        speedUpTime = std::chrono::milliseconds(0);
+        speed_ = defaultSpeed;
+    }    
+}
+//---------------------------------------------------------------------------------------------------------------
+int Base::getSpeedUpTime()
+{
+    return speedUpTime.count();
+}
+//---------------------------------------------------------------------------------------------------------------
